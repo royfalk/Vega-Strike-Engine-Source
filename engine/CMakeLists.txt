@@ -207,6 +207,8 @@ SET(LIBCMD_SOURCES
     src/cmd/unit_util_generic.cpp
     src/cmd/unit_xml.cpp 
     src/cmd/weapon_xml.cpp
+
+    src/cmd/drawable.cpp
 )
 
 SET(LIBCMDSERVER_SOURCES
@@ -755,7 +757,7 @@ IF(NOT USE_SYSTEM_BOOST)
         SET(TST_LIBS ${TST_LIBS} boost_python)
     ENDIF(USE_PYTHON_3)
     include_directories(${TST_INCLUDES})
-    add_subdirectory(${Boost_DIR} build)
+    #add_subdirectory(${Boost_DIR} build)
     message("++ boost dir: ${Boost_DIR}")
     #IF(NOT DISABLE_CLIENT)
     #  add_dependencies(vegastrike boost_python)
