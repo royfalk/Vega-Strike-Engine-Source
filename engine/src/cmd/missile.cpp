@@ -1,5 +1,6 @@
+#include "missile.h"
+
 #include "universe_util.h"
-#include "missile_generic.h"
 #include "unit_generic.h"
 #include "vegastrike.h"
 #include "vs_globals.h"
@@ -116,7 +117,7 @@ void MissileEffect::ApplyDamage( Unit *smaller )
     }
 }
 
-float Missile::ExplosionRadius()
+float GameMissile::ExplosionRadius()
 {
     static float missile_multiplier =
         XMLSupport::parse_float( vs_config->getVariable( "graphics", "missile_explosion_radius_mult", "1" ) );
@@ -129,7 +130,7 @@ void StarSystem::AddMissileToQueue( MissileEffect *me )
     dischargedMissiles.push_back( me );
 }
 
-void Missile::Discharge() {
+void GameMissile::Discharge() {
     if ( (damage != 0 || phasedamage != 0) && !discharged ) {
         Unit *targ = Unit::Target();
         VSFileSystem::vs_dprintf( 1, "Missile discharged (target %s)\n",
@@ -141,14 +142,14 @@ void Missile::Discharge() {
   }
 }
 
-void Missile::Kill( bool erase ) {
+void GameMissile::Kill( bool erase ) {
     Unit *targ = Unit::Target();
     VSFileSystem::vs_dprintf( 1, "Missile killed (target %s)\n", (targ != NULL) ? targ->name.get().c_str() : "NULL");
     Discharge();
     Unit::Kill( erase );
 }
 
-void Missile::reactToCollision( Unit *smaller,
+void GameMissile::reactToCollision( Unit *smaller,
                                 const QVector &biglocation,
                                 const Vector &bignormal,
                                 const QVector &smalllocation,
@@ -206,7 +207,7 @@ Unit * getNearestTarget( Unit *me )
     }
     return targ;
 }
-void Missile::UpdatePhysics2( const Transformation &trans,
+void GameMissile::UpdatePhysics2( const Transformation &trans,
                               const Transformation &old_physical_state,
                               const Vector &accel,
                               float difficulty,

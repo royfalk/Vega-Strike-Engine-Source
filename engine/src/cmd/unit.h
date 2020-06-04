@@ -202,16 +202,16 @@ class Unit;
 template < class Unit >
 class GameUnit;
 
-class Missile;
-template < class Missile >
-class GameUnit;
-
 class Nebula;
 template < class Nebula >
 class GameUnit;
 
 class Enhancement;
 template < class Enhancement >
+class GameUnit;
+
+class DummyUnit;
+template <class DummyUnit>
 class GameUnit;
 
 #endif

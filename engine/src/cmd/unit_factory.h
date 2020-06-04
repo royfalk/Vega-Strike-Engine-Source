@@ -23,11 +23,12 @@
 #include <string>
 
 #include "cmd/planet_generic.h"
+#include "cmd/dummyunit.h"
 
 class Mesh;
 class Flightgroup;
 class Nebula;
-class Missile;
+class DummyUnit;
 class Enhancement;
 class Building;
 class Asteroid;
@@ -59,7 +60,7 @@ public:
                                   Flightgroup *fg = NULL,
                                   int fg_snumber = 0);
 
-    static Missile * createMissile( const char *filename,
+    static DummyUnit * createMissile( const char *filename,
                                     int faction,
                                     const string &modifications,
                                     const float damage,

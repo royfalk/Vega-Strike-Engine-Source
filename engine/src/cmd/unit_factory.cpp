@@ -95,7 +95,7 @@ Nebula* UnitFactory::createNebula( const char *unitfile,
     return neb;
 }
 
-Missile* UnitFactory::createMissile( const char *filename,
+DummyUnit* UnitFactory::createMissile( const char *filename,
                                      int faction,
                                      const string &modifications,
                                      const float damage,
@@ -105,7 +105,7 @@ Missile* UnitFactory::createMissile( const char *filename,
                                      float radmult,
                                      float detonation_radius )
 {
-    Missile *un = new GameMissile( filename,
+    DummyUnit *un = new GameMissile( filename,
                                    faction,
                                    modifications,
                                    damage,

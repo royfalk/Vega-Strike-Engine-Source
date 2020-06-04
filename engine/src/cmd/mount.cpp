@@ -1,7 +1,7 @@
 #include "unit_generic.h"
-#include "missile_generic.h"
 #include "beam.h"
 #include "bolt.h"
+#include "missile.h"
 #include "weapon_xml.h"
 #include "audiolib.h"
 #include "unit_factory.h"

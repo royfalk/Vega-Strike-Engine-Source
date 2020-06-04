@@ -24,7 +24,6 @@
 #include "cmd/ai/aggressive.h"
 #include "python/python_class.h"
 #include "cmd/unit_factory.h"
-#include "missile_generic.h"
 #include "gfx/cockpit_generic.h"
 #include "gfx/vsbox.h"
 #include <algorithm>

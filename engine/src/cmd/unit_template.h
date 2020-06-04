@@ -10,13 +10,14 @@
 #include "building_generic.h"
 #include "missile_generic.h"
 #include "nebula_generic.h"
+#include "dummyunit.h"
 
 template class GameUnit< Enhancement >;
 template class GameUnit< Nebula >;
 template class GameUnit< Asteroid >;
 template class GameUnit< Unit >;
 template class GameUnit< Building >;
-template class GameUnit< Missile >;
+template class GameUnit< DummyUnit >;
 template class GameUnit< Planet >;
 #endif
 
