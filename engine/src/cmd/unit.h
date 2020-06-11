@@ -31,6 +31,9 @@
 #include <memory>
 #include "gfx/vec.h"
 
+
+#include "dummyunit.h"
+
 class HaloSystem;
 struct GFXColor; // labeled as class, declared as struct in gfxlib_struct.h
 struct Transformation;
@@ -186,28 +189,10 @@ public:
 /////////////////////////////////////////////////////
 //forward declarations of explicit instantiations, added by chuck_starchaser:
 
-class Asteroid;
-template < class Asteroid >
-class GameUnit;
 
-class Building;
-template < class Building >
-class GameUnit;
-
-class Planet;
-template < class Planet >
-class GameUnit;
 
 class Unit;
 template < class Unit >
-class GameUnit;
-
-class Nebula;
-template < class Nebula >
-class GameUnit;
-
-class Enhancement;
-template < class Enhancement >
 class GameUnit;
 
 class DummyUnit;

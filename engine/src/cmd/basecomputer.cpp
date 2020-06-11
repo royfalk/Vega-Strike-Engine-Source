@@ -33,7 +33,7 @@ using VSFileSystem::SaveFile;
 #include <algorithm>                //For std::sort.
 #include <set>
 #include "load_mission.h"
-#include "cmd/planet_generic.h"
+#include "cmd/planet.h"
 #include "cmd/unit_util.h"
 #include "cmd/music.h"
 #include "cmd/unit_const_cache.h"
@@ -1544,7 +1544,7 @@ void BaseComputer::recalcTitle()
     string baseName;
     if (baseUnit) {
         if (baseUnit->isUnit() == PLANETPTR) {
-            string temp = ( (Planet*) baseUnit )->getHumanReadablePlanetType()+" Planet";
+            string temp = ( (GamePlanet*) baseUnit )->getHumanReadablePlanetType()+" Planet";
             // think "<planet type> <name of planet>"
             baseName = temp + " " + baseUnit->name;
         } else {

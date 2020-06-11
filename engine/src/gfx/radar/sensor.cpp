@@ -1,7 +1,7 @@
 // -*- mode: c++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 
 #include "cmd/unit_generic.h"
-#include "cmd/planet_generic.h"
+#include "cmd/planet.h"
 #include "cmd/unit_util.h"
 #include "cmd/unit_find.h"
 #include "sensor.h"
@@ -91,12 +91,7 @@ bool Sensor::IsTracking(const Track& track) const
     return (track.target == player->Target());
 }
 
-bool Sensor::InsideNebula() const
-{
-    assert(player);
 
-    return (player->GetNebula() != NULL);
-}
 
 bool Sensor::InRange(const Track& track) const
 {
@@ -292,7 +287,6 @@ GFXColor Sensor::GetColor(const Track& track) const
     {
         switch (trackType)
         {
-        case Track::Type::Nebula:
         case Track::Type::Star:
             return starColor;
 

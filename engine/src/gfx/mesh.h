@@ -34,7 +34,7 @@
 
 using std::vector;
 using std::string;
-class Planet;
+class GamePlanet;
 class Unit;
 class Logo;
 class AnimatedTexture;

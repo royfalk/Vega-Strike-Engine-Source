@@ -26,7 +26,6 @@
 #include "universe.h"
 #include "cmd/atmosphere.h"
 #include "hashtable.h"
-#include "cmd/nebula.h"
 #include "galaxy_gen.h"
 #include "cmd/script/mission.h"
 #include "in_kb.h"
@@ -356,15 +355,13 @@ void GameStarSystem::Draw( bool DrawCockpit )
     Terrain::RenderAll();
     Mesh::ProcessUndrawnMeshes( true );
     processmesh = queryTime()-processmesh;
-    Nebula *neb;
 
     Matrix  ident;
     Identity( ident );
 
     GFXPopGlobalEffects();
     GFXLightContextAmbient( tmpcol );
-    if ( ( neb = _Universe->AccessCamera()->GetNebula() ) )
-        neb->SetFogState();
+
     Beam::ProcessDrawQueue();
     Bolt::Draw();
 
@@ -404,17 +401,7 @@ void UpdateCameraSnds()
     _Universe->AccessCockpit( 0 )->AccessCamera()->UpdateCameraSounds();
 }
 
-void NebulaUpdate( StarSystem *ss )
-{
-    if (_Universe->AccessCockpit()->activeStarSystem == ss) {
-        Nebula *neb;
-        if ( ( neb = _Universe->AccessCamera()->GetNebula() ) ) {
-            if (neb->getFade() <= 0)
-                //Update physics should set this
-                _Universe->AccessCamera()->SetNebula( NULL );
-        }
-    }
-}
+
 
 void GameStarSystem::createBackground( StarSystem::StarXML *xml )
 {

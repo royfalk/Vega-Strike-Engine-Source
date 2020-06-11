@@ -11,7 +11,7 @@
 #include "cmd/container.h"
 #include <map>
 class Stars;
-class Planet;
+class GamePlanet;
 class ClickList;
 class Unit;
 class Background;
@@ -59,7 +59,7 @@ protected:
         ContinuousTerrain     *ct;
         int unitlevel;
         std::vector< GFXLight >lights;
-        std::vector< Planet* > moons;
+        std::vector< GamePlanet* > moons;
         std::string backgroundname;
         GFXColor backgroundColor;
         bool   backgroundDegamma;

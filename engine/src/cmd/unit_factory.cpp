@@ -21,7 +21,6 @@
 
 #include "unit_factory.h"
 #include "unit.h"
-#include "nebula.h"
 #include "missile.h"
 #include "enhancement.h"
 #include "planet.h"
@@ -80,20 +79,7 @@ Unit* UnitFactory::createUnit( vector< Mesh* > &meshes, bool Subunit, int factio
                                   faction );
 }
 
-Nebula* UnitFactory::createNebula( const char *unitfile,
-                                   bool SubU,
-                                   int faction,
-                                   Flightgroup *fg,
-                                   int fg_snumber )
-{
-    Nebula *neb = new GameNebula( unitfile,
-                                  SubU,
-                                  faction,
-                                  fg,
-                                  fg_snumber );
 
-    return neb;
-}
 
 DummyUnit* UnitFactory::createMissile( const char *filename,
                                      int faction,
@@ -118,12 +104,8 @@ DummyUnit* UnitFactory::createMissile( const char *filename,
     return un;
 }
 
-Planet* UnitFactory::createPlanet()
-{
-    return new GamePlanet;
-}
 
-Planet* UnitFactory::createPlanet( QVector x,
+DummyUnit* UnitFactory::createPlanet( QVector x,
                                    QVector y,
                                    float vely,
                                    const Vector &rotvel,
@@ -144,7 +126,7 @@ Planet* UnitFactory::createPlanet( QVector x,
                                    string fullname,
                                    bool inside_out )
 {
-    Planet *p = new GamePlanet( x, y, vely, rotvel,
+    DummyUnit *p = new GamePlanet( x, y, vely, rotvel,
                                 pos,
                                 gravity, radius,
                                 filename, technique, unitname,
@@ -157,7 +139,7 @@ Planet* UnitFactory::createPlanet( QVector x,
     return p;
 }
 
-Enhancement* UnitFactory::createEnhancement( const char *filename,
+DummyUnit* UnitFactory::createEnhancement( const char *filename,
                                              int faction,
                                              const string &modifications,
                                              Flightgroup *flightgrp,
@@ -170,7 +152,7 @@ Enhancement* UnitFactory::createEnhancement( const char *filename,
                                 fg_subnumber );
 }
 
-Building* UnitFactory::createBuilding( ContinuousTerrain *parent,
+DummyUnit* UnitFactory::createBuilding( ContinuousTerrain *parent,
                                        bool vehicle,
                                        const char *filename,
                                        bool SubUnit,
@@ -187,7 +169,7 @@ Building* UnitFactory::createBuilding( ContinuousTerrain *parent,
                              fg );
 }
 
-Building* UnitFactory::createBuilding( Terrain *parent,
+DummyUnit* UnitFactory::createBuilding( Terrain *parent,
                                        bool vehicle,
                                        const char *filename,
                                        bool SubUnit,
@@ -204,13 +186,13 @@ Building* UnitFactory::createBuilding( Terrain *parent,
                              fg );
 }
 
-Asteroid* UnitFactory::createAsteroid( const char *filename,
+DummyUnit* UnitFactory::createAsteroid( const char *filename,
                                        int faction,
                                        Flightgroup *fg,
                                        int fg_snumber,
                                        float difficulty )
 {
-    Asteroid *ast = new GameAsteroid( filename,
+    DummyUnit *ast = new GameAsteroid( filename,
                                       faction,
                                       fg,
                                       fg_snumber,

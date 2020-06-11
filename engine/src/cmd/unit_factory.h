@@ -22,16 +22,12 @@
 #include "config.h"
 #include <string>
 
-#include "cmd/planet_generic.h"
 #include "cmd/dummyunit.h"
 
 class Mesh;
 class Flightgroup;
-class Nebula;
 class DummyUnit;
 class Enhancement;
-class Building;
-class Asteroid;
 class Terrain;
 class ContinuousTerrain;
 
@@ -54,12 +50,6 @@ public:
 
     static Unit * createUnit( std::vector< Mesh* > &meshes, bool Subunit, int faction );
 
-    static Nebula * createNebula( const char *unitfile,
-                                  bool SubU,
-                                  int faction,
-                                  Flightgroup *fg = NULL,
-                                  int fg_snumber = 0);
-
     static DummyUnit * createMissile( const char *filename,
                                     int faction,
                                     const string &modifications,
@@ -70,9 +60,7 @@ public:
                                     float radmult,
                                     float detonation_radius );
 
-    static Planet * createPlanet();
-
-    static Planet * createPlanet( QVector x,
+    static DummyUnit * createPlanet( QVector x,
                                   QVector y,
                                   float vely,
                                   const Vector &rotvel,
@@ -93,13 +81,13 @@ public:
                                   string fullname,
                                   bool inside_out = false );
 
-    static Enhancement * createEnhancement( const char *filename,
+    static DummyUnit * createEnhancement( const char *filename,
                                             int faction,
                                             const string &modifications,
                                             Flightgroup *flightgrp = NULL,
                                             int fg_subnumber = 0 );
 
-    static Building * createBuilding( ContinuousTerrain *parent,
+    static DummyUnit * createBuilding( ContinuousTerrain *parent,
                                       bool vehicle,
                                       const char *filename,
                                       bool SubUnit,
@@ -107,7 +95,7 @@ public:
                                       const std::string &unitModifications = std::string( "" ),
                                       Flightgroup *fg = NULL );
 
-    static Building * createBuilding( Terrain *parent,
+    static DummyUnit * createBuilding( Terrain *parent,
                                       bool vehicle,
                                       const char *filename,
                                       bool SubUnit,
@@ -115,7 +103,7 @@ public:
                                       const std::string &unitModifications = std::string( "" ),
                                       Flightgroup *fg = NULL );
 
-    static Asteroid * createAsteroid( const char *filename,
+    static DummyUnit * createAsteroid( const char *filename,
                                       int faction,
                                       Flightgroup *fg = NULL,
                                       int fg_snumber = 0,

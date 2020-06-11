@@ -1,20 +1,16 @@
 #include <expat.h>
 #include "xml_support.h"
 #include "star_system_generic.h"
-#include "cmd/planet_generic.h"
 #include "cmd/unit_factory.h"
+#include "cmd/planet.h"
 #include "vs_globals.h"
 #include "vsfilesystem.h"
 #include "configxml.h"
 #include "vegastrike.h"
 #include <assert.h>                              /// needed for assert() calls.
 #include "gfx/mesh.h"
-#include "cmd/building_generic.h"
 #include "cmd/ai/aggressive.h"
 #include "cmd/ai/fire.h"
-#include "cmd/nebula_generic.h"
-#include "cmd/asteroid_generic.h"
-#include "cmd/enhancement_generic.h"
 #include "cmd/script/flightgroup.h"
 #include "universe_util.h"
 #include "cmd/atmosphere.h"
@@ -646,7 +642,7 @@ void StarSystem::beginElement( const string &name, const AttributeList &attribut
                         }
                     }
                     if ( p != NULL && ConfigAllows( varname, varvalue ) )
-                        ( (Planet*) p )->AddRing( myfile, iradius, oradius, R, S, numslices, wrapx, wrapy, blendSrc, blendDst );
+                        ( (GamePlanet*) p )->AddRing( myfile, iradius, oradius, R, S, numslices, wrapx, wrapy, blendSrc, blendDst );
                 }
             }
             break;
@@ -696,7 +692,7 @@ void StarSystem::beginElement( const string &name, const AttributeList &attribut
                         }
                     }
                     if ( p != NULL && ConfigAllows( varname, varvalue ) )
-                        ( (Planet*) p )->AddSpaceElevator( myfile, faction, direction );
+                        ( (GamePlanet*) p )->AddSpaceElevator( myfile, faction, direction );
                 }
             }
             break;
@@ -826,7 +822,7 @@ void StarSystem::beginElement( const string &name, const AttributeList &attribut
                         }
                     }
                     if ( ConfigAllows( varname, varvalue ) )
-                        ( (Planet*) p )->AddCity( myfile, radius, wrapx, wrapy, blendSrc, blendDst, inside_out );
+                        ( (GamePlanet*) p )->AddCity( myfile, radius, wrapx, wrapy, blendSrc, blendDst, inside_out );
                 }
             }
             break;
@@ -871,7 +867,7 @@ void StarSystem::beginElement( const string &name, const AttributeList &attribut
                         }
                     }
                     if ( ConfigAllows( varname, varvalue ) )
-                        ( (Planet*) p )->AddAtmosphere( myfile, radius, blendSrc, blendDst, inside_out );
+                        ( (GamePlanet*) p )->AddAtmosphere( myfile, radius, blendSrc, blendDst, inside_out );
                 }
             }
             break;
@@ -971,7 +967,7 @@ void StarSystem::beginElement( const string &name, const AttributeList &attribut
                     xml->ct = contterrains.back();
                     if (xml->unitlevel > 2) {
                         assert( xml->moons.size() != 0 );
-                        Planet *p = xml->moons.back()->GetTopPlanet( xml->unitlevel-1 );
+                        GamePlanet *p = xml->moons.back()->GetTopPlanet( xml->unitlevel-1 );
                         if (p) {
                             disableTerrainDraw( xml->ct );
                             p->setTerrain( xml->ct, scalex, numwraps, scaleatmos );
@@ -1201,20 +1197,30 @@ addlightprop:
                 un->applyTechniqueOverrides(paramOverrides);
             }
         } else {
-            Planet *planet;
+            GamePlanet *planet = static_cast<GamePlanet*>(UnitFactory::createPlanet(
+                                                            R,
+                                                            S,
+                                                            velocity,
+                                                            ComputeRotVel( rotvel, R, S ),
+                                                            position,
+                                                            gravity,
+                                                            radius,
+                                                            filename,
+                                                            technique,
+                                                            unitname,
+                                                            blendSrc,
+                                                            blendDst,
+                                                            dest,
+                                                            xml->cursun.Cast()+xml->systemcentroid.Cast(),
+                                                            NULL,
+                                                            ourmat,
+                                                            curlights,
+                                                            faction != 0 ? faction : FactionUtil::GetFactionIndex(UniverseUtil::GetGalaxyFaction( truncatedfilename ) ),
+                                                            fullname,
+                                                            insideout));
+
             fprintf(stderr, "Creating planet %s with texture %s and technique %s - unitlevel <= 2\n", fullname.c_str(), filename.c_str(), technique.c_str());
-            xml->moons.push_back( ( planet =
-                                       UnitFactory::createPlanet( R, S, velocity,
-                                                                  ComputeRotVel( rotvel, R, S ),
-                                                                  position, gravity, radius,
-                                                                  filename, technique, unitname,
-                                                                  blendSrc, blendDst, dest, xml->cursun.Cast()
-                                                                  +xml->systemcentroid.Cast(),
-                                                                  NULL, ourmat, curlights, faction
-                                                                  != 0 ? faction : FactionUtil::GetFactionIndex(
-                                                                        UniverseUtil::GetGalaxyFaction( truncatedfilename ) ),
-                                                                  fullname,
-                                                                  insideout ) ) );
+            xml->moons.push_back( planet );
 
             xml->moons[xml->moons.size()-1]->SetPosAndCumPos( R+S+xml->cursun.Cast()+xml->systemcentroid.Cast() );
             xml->moons.back()->SetOwner( getTopLevelOwner() );
@@ -1336,18 +1342,15 @@ addlightprop:
         if ( ( !xml->conditionStack.size() || xml->conditionStack.back() )
             && ConfigAllows( varname, varvalue )
             && ConfigCondition( condition ) ) {
-            if ( ( (elem == UNIT || elem == NEBULA || elem == ENHANCEMENT
+            if ( ( (elem == UNIT || elem == ENHANCEMENT
                     || elem == ASTEROID) || (xml->ct == NULL && xml->parentterrain == NULL) ) && (xml->unitlevel > 2) ) {
                 assert( xml->moons.size() != 0 );
                 Unit   *un = NULL; //FIXME !!! un appears to never be allocated memory !!! "= NULL" added by chuck_starchaser
-                Planet *plan = xml->moons.back()->GetTopPlanet( xml->unitlevel-1 );
+                GamePlanet *plan = xml->moons.back()->GetTopPlanet( xml->unitlevel-1 );
                 if (elem == UNIT) {
                     Flightgroup *fg = getStaticBaseFlightgroup( faction );
                     plan->AddSatellite( un = UnitFactory::createUnit( filename.c_str(), false, faction, "", fg, fg->nr_ships-1 ) );
                     un->setFullname( fullname ); //FIXME un de-referenced before allocation
-                } else if (elem == NEBULA) {
-                    Flightgroup *fg = getStaticNebulaFlightgroup( faction );
-                    plan->AddSatellite( un = UnitFactory::createNebula( filename.c_str(), false, faction, fg, fg->nr_ships-1 ) );
                 } else if (elem == ASTEROID) {
                     Flightgroup *fg = getStaticAsteroidFlightgroup( faction );
                     plan->AddSatellite( un =
@@ -1401,19 +1404,16 @@ addlightprop:
                         Flightgroup *fg = getStaticBaseFlightgroup( faction );
                         Unit *moon_unit = UnitFactory::createUnit( filename.c_str(), false, faction, "", fg, fg->nr_ships-1 );
                         moon_unit->setFullname( fullname );
-                        xml->moons.push_back( (Planet*) moon_unit );
-                    } else if (elem == NEBULA) {
-                        Flightgroup *fg = getStaticNebulaFlightgroup( faction );
-                        xml->moons.push_back( (Planet*) UnitFactory::createNebula( filename.c_str(), false, faction, fg, fg->nr_ships-1 ) );
+                        xml->moons.push_back( (GamePlanet*) moon_unit );
                     } else if (elem == ASTEROID) {
                         Flightgroup *fg = getStaticAsteroidFlightgroup( faction );
-                        Planet *ast;
+                        GamePlanet *ast;
                         xml->moons.push_back( ast =
-                                                 (Planet*) UnitFactory::createAsteroid( filename.c_str(), faction, fg, fg->nr_ships-1,
+                                                 (GamePlanet*) UnitFactory::createAsteroid( filename.c_str(), faction, fg, fg->nr_ships-1,
                                                                                         scalex ) );
                     } else if (elem == ENHANCEMENT) {
-                        Planet *enh;
-                        xml->moons.push_back( enh = (Planet*) UnitFactory::createEnhancement( filename.c_str(), faction, string( "" ) ) );
+                        GamePlanet *enh;
+                        xml->moons.push_back( enh = (GamePlanet*) UnitFactory::createEnhancement( filename.c_str(), faction, string( "" ) ) );
                     }
                     {
                         Unit *un = xml->moons.back();
@@ -1456,7 +1456,7 @@ void StarSystem::endElement( const string &name )
             Unit *p = (Unit*) xml->moons.back()->GetTopPlanet( xml->unitlevel );
             if (p != NULL)
                 if (p->isUnit() == PLANETPTR)
-                    ( (Planet*) p )->AddFog( xml->fog, xml->fogopticalillusion );
+                    ( (GamePlanet*) p )->AddFog( xml->fog, xml->fogopticalillusion );
             break;
         }
     case UNKNOWN:
@@ -1531,7 +1531,7 @@ void StarSystem::LoadXML( const char *filename, const Vector &centroid, const fl
     for (i = 0; i < xml->moons.size(); ++i) {
         if (xml->moons[i]->isUnit() == PLANETPTR) {
             Unit *un = NULL;
-            for ( Planet::PlanetIterator iter( (Planet*) xml->moons[i] ); (un = *iter); iter.advance() )
+            for ( GamePlanet::PlanetIterator iter( (GamePlanet*) xml->moons[i] ); (un = *iter); iter.advance() )
                 AddUnit( un );
         } else {
             AddUnit( xml->moons[i] );

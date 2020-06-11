@@ -61,7 +61,7 @@ string getUnitNameAndFgNoBase( Unit *target )
 {
     Flightgroup *fg = target->getFlightgroup();
     if (target->isUnit() == PLANETPTR) {
-        string hr = ( (Planet*) target )->getHumanReadablePlanetType();
+        string hr = ( (GamePlanet*) target )->getHumanReadablePlanetType();
         if ( !hr.empty() )
             return hr+string( ":" )+reformatName( target->name );
     } else if (target->isUnit() == UNITPTR) {
@@ -738,7 +738,7 @@ void VDU::DrawTarget( GameCockpit *cp, Unit *parent, Unit *target )
         au = ar = al = ad = target->GetHullPercent();
     DrawHUDSprite( this, ( (target->isUnit() != PLANETPTR || target->getHudImage() != NULL) ? target->getHudImage()
                           : ( target->GetDestinations().size() != 0 ? getJumpImage()
-                             : ( ( (Planet*) target )->hasLights() ? getSunImage()
+                             : ( ( (GamePlanet*) target )->hasLights() ? getSunImage()
                                 : ( target->getFullname().find(
                                        "invisible" ) != string::npos ? getNavImage() : getPlanetImage() ) ) ) ), .6, x, y, w, h,
                    au, ar, al, ad,

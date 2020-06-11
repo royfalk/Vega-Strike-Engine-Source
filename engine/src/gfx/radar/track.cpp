@@ -3,7 +3,7 @@
 #include <algorithm>
 #include "gfxlib.h"
 #include "cmd/unit_generic.h"
-#include "cmd/planet_generic.h"
+#include "cmd/planet.h"
 #include "cmd/unit_util.h"
 #include "track.h"
 
@@ -117,12 +117,10 @@ Track::Type::Value Track::IdentifyType() const
 
     switch (target->isUnit())
     {
-    case NEBULAPTR:
-        return Type::Nebula;
 
     case PLANETPTR:
         {
-            const Planet *planet = static_cast<const Planet *>(target);
+            const GamePlanet *planet = static_cast<const GamePlanet *>(target);
             if (planet->isJumppoint())
                 return Type::JumpPoint;
 

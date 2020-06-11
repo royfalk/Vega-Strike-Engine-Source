@@ -10,7 +10,7 @@
 #include "gfx/cockpit_generic.h"
 #include "python/init.h"
 #include "python/python_compile.h"
-#include "planet_generic.h"
+#include "planet.h"
 #include "base_util.h"
 #include "config_xml.h"
 #include "save_util.h"
@@ -1047,7 +1047,7 @@ double compute_light_dot( Unit *base, Unit *un )
         un_iter ui = ss->getUnitList().createIterator();
         for (; (st = *ui); ++ui)
             if ( st->isPlanet() ) {
-                if ( ( (Planet*) st )->hasLights() ) {
+                if ( ( (GamePlanet*) st )->hasLights() ) {
 #ifdef VS_DEBUG
                     QVector v1  = ( un->Position()-base->Position() ).Normalize();
                     QVector v2  = ( st->Position()-base->Position() ).Normalize();
@@ -1059,7 +1059,7 @@ double compute_light_dot( Unit *base, Unit *un )
                     }
 #endif
                 } else {
-                    un_iter ui   = ( (Planet*) st )->satellites.createIterator();
+                    un_iter ui   = ( (GamePlanet*) st )->satellites.createIterator();
                     Unit   *ownz = NULL;
                     for (; (ownz = *ui); ++ui)
                         if (ownz == base)

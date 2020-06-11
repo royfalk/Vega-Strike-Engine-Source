@@ -109,19 +109,6 @@ void Unit::unitRole( unsigned char c )
     unit_role = c;
 }
 
-void Unit::SetNebula( Nebula *neb )
-{
-    nebula = neb;
-    if ( !SubUnits.empty() ) {
-        un_fiter iter = SubUnits.fastIterator();
-        Unit    *un;
-        while ( (un = *iter) ) {
-            un->SetNebula( neb );
-            ++iter;
-        }
-    }
-}
-
 bool Unit::InCorrectStarSystem( StarSystem *active )
 {
     return active == activeStarSystem;
@@ -775,7 +762,6 @@ void Unit::ZeroAll()
         damages      = Damages::NO_DAMAGE;
     //SubUnits has a constructor
     attack_preference = unit_role = 0;
-    nebula            = NULL;
     activeStarSystem  = NULL;
     //computer has a constructor
     //jump needs fixing
@@ -887,7 +873,6 @@ void Unit::Init()
     graphicOptions.FaceCamera = false;
     jump.drive                = -2;              //disabled
     afterburnenergy           = 0;
-    nebula = NULL;
     limits.structurelimits    = Vector( 0, 0, 1 );
     limits.limitmin           = -1;
     cloaking = -1;
@@ -2256,7 +2241,7 @@ bool Unit::AutoPilotToErrorMessage( const Unit *target,
                 static bool canflythruplanets =
                     XMLSupport::parse_bool( vs_config->getVariable( "physics", "can_auto_through_planets", "true" ) );
                 if ( ( !(un->isUnit() == PLANETPTR
-                         && canflythruplanets) ) && un->isUnit() != NEBULAPTR && ( !UnitUtil::isSun( un ) ) ) {
+                         && canflythruplanets) ) && ( !UnitUtil::isSun( un ) ) ) {
                     if (un != this && un != target) {
                         float tdis  = ( start-un->Position() ).Magnitude()-rSize()-un->rSize();
                         float nedis = ( end-un->Position() ).Magnitude()-rSize()-un->rSize();
@@ -2897,7 +2882,6 @@ float Unit::ApplyLocalDamage( const Vector &pnt,
                               const GFXColor &color,
                               float phasedamage )
 {
-    static float nebshields = XMLSupport::parse_float( vs_config->getVariable( "physics", "nebula_shield_recharge", ".5" ) );
     Cockpit     *cpt;
     if ( ( cpt = _Universe->isPlayerStarship( this ) ) != NULL ) {
         if (color.a != 2) {
@@ -2926,21 +2910,21 @@ float Unit::ApplyLocalDamage( const Vector &pnt,
     amt *= 1-.01*shield.leak;
     //Percentage returned by DealDamageToShield
     float spercentage = 0;
-    //If not a nebula or if shields recharge in nebula => WE COMPUTE SHIELDS DAMAGE AND APPLY
-    if ( GetNebula() == NULL || (nebshields > 0) ) {
-        float origabsamt = absamt;
-        spercentage = DealDamageToShield( pnt, absamt );
 
-        amt = amt >= 0 ? absamt : -absamt;
-        //shields are up
-        if ( meshdata.back() && spercentage > 0 && (origabsamt-absamt > shield.recharge || amt == 0) ) {
-            //calculate percentage
-            if (cpt)
-                cpt->Shake( amt, 0 );
-            if (GetNebula() == NULL)
-                LightShields( pnt, normal, spercentage, color );
-        }
-    }
+
+    float origabsamt = absamt;
+    spercentage = DealDamageToShield( pnt, absamt );
+
+    amt = amt >= 0 ? absamt : -absamt;
+    //shields are up
+    if ( meshdata.back() && spercentage > 0 && (origabsamt-absamt > shield.recharge || amt == 0) ) {
+        //calculate percentage
+        if (cpt)
+          cpt->Shake( amt, 0 );
+        LightShields( pnt, normal, spercentage, color );
+      }
+
+
     //If shields failing or... => WE COMPUTE DAMAGE TO HULL
     if (shield.leak > 0 || !meshdata.back() || spercentage == 0 || absamt > 0 || phasedamage) {
         float tmp = this->hull;
@@ -2960,18 +2944,16 @@ float Unit::ApplyLocalDamage( const Vector &pnt,
 
 void Unit::ApplyNetDamage( Vector &pnt, Vector &normal, float amt, float ppercentage, float spercentage, GFXColor &color )
 {
-    static float nebshields = XMLSupport::parse_float( vs_config->getVariable( "physics", "nebula_shield_recharge", ".5" ) );
     Cockpit     *cpt;
     if ( ( cpt = _Universe->isPlayerStarship( this ) ) != NULL ) {}
-    if (GetNebula() == NULL || nebshields > 0) {
-        //shields are up
-        if (meshdata.back() && spercentage > 0 && amt == 0) {
-            if (GetNebula() == NULL)
-                meshdata.back()->AddDamageFX( pnt, shieldtight ? shieldtight*normal : Vector( 0, 0, 0 ), spercentage, color );
-            if (cpt)
-                cpt->Shake( amt, 0 );
-        }
+
+    //shields are up
+    if (meshdata.back() && spercentage > 0 && amt == 0) {
+        meshdata.back()->AddDamageFX( pnt, shieldtight ? shieldtight*normal : Vector( 0, 0, 0 ), spercentage, color );
+        if (cpt)
+            cpt->Shake( amt, 0 );
     }
+
     if (shield.leak > 0 || !meshdata.back() || spercentage == 0 || amt > 0) {
         if (ppercentage != -1) {
             //returns -1 on death--could delete
@@ -7990,11 +7972,6 @@ void Unit::RegenShields()
         if (graphicOptions.InWarp && !shields_in_spec) {
             rec = 0;
             velocity_discharge = true;
-        }
-        if (GetNebula() != NULL) {
-            static float nebshields =
-                XMLSupport::parse_float( vs_config->getVariable( "physics", "nebula_shield_recharge", ".5" ) );
-            rec *= nebshields;
         }
     }
     //ECM energy drain

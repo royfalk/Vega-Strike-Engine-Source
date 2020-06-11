@@ -20,10 +20,6 @@ bool Damageable::ShieldUp( const Vector &pnt ) const
 {
     const int    shieldmin  = 5;
 
-    // TODO: think about this. I have no idea why a nebula needs shields
-//    static float nebshields = XMLSupport::parse_float( vs_config->getVariable( "physics", "nebula_shield_recharge", ".5" ) );
-//    if (nebula != NULL || nebshields > 0)
-//        return false;
     switch (shield.number)
     {
     case 2:

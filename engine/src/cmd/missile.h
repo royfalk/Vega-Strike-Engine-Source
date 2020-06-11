@@ -9,7 +9,6 @@
 #include "gfx/matrix.h"
 #include "cmd/script/flightgroup.h"
 #include "cmd/collection.h"
-#include "cmd/asteroid_generic.h"
 #include "cmd/unit_factory.h"
 #include "cmd/unit.h"
 

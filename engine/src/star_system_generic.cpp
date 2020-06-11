@@ -4,7 +4,6 @@
 
 #include "star_system_generic.h"
 #include "gfx/vec.h"
-#include "cmd/planet_generic.h"
 #include "cmd/unit_generic.h"
 #include "cmd/unit_collide.h"
 #include "cmd/collection.h"
@@ -18,7 +17,6 @@
 #include "vs_globals.h"
 #include "vegastrike.h"
 #include "universe_generic.h"
-#include "cmd/nebula_generic.h"
 #include "galaxy_gen.h"
 #include "cmd/script/mission.h"
 #include "in_kb.h"
@@ -636,8 +634,6 @@ void StarSystem::Update( float priority )
             Unit::ProcessDeleteQueue();
             current_stage = MISSION_SIMULATION;
             collidetable->Update();
-            for (un_iter iter = drawList.createIterator(); (unit = *iter); ++iter)
-                unit->SetNebula( NULL );
             UpdateMissiles();                    //do explosions
             UpdateUnitPhysics( firstframe );
 

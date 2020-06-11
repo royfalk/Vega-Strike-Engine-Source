@@ -7,12 +7,12 @@
 #include "universe_util.h"
 #include "cmd/ai/docking.h"
 #include "savegame.h"
-#include "cmd/planet_generic.h"
 #include "faction_generic.h"
 #include "cmd/ai/fire.h"
 #include "gfx/cockpit_generic.h"
 #include "role_bitmask.h"
 #include "lin_time.h"
+#include "planet.h"
 
 #include "cmd/script/pythonmission.h"
 #ifndef NO_GFX
@@ -303,7 +303,7 @@ void orbit( Unit *my_unit, Unit *orbitee, float speed, QVector R, QVector S, QVe
                                                   center, orbitee ) );
         if (orbitee)
             if (orbitee->isUnit() == PLANETPTR)
-                ( (Planet*) orbitee )->AddSatellite( my_unit );
+                ( (GamePlanet*) orbitee )->AddSatellite( my_unit );
         if ( my_unit->faction != FactionUtil::GetFactionIndex( "neutral" ) ) {
             Order *tmp = new Orders::FireAt( 15.0 );
             my_unit->EnqueueAI( tmp );
@@ -705,7 +705,7 @@ float getSignificantDistance( const Unit *un, const Unit *sig )
 bool isSun( const Unit *my_unit )
 {
     if (!my_unit) return false;
-    return my_unit->isPlanet() && ((Planet*)my_unit)->hasLights();
+    return my_unit->isPlanet() && ((GamePlanet*)my_unit)->hasLights();
 }
 
 bool isSignificant( const Unit *my_unit )
@@ -714,7 +714,7 @@ bool isSignificant( const Unit *my_unit )
     bool   res = false;
     clsptr typ = my_unit->isUnit();
     const string &s = getFlightgroupNameCR( my_unit );
-    res = (typ == PLANETPTR || typ == ASTEROIDPTR || typ == NEBULAPTR || s == "Base");
+    res = (typ == PLANETPTR || typ == ASTEROIDPTR || s == "Base");
     return res && !isSun( my_unit );
 }
 

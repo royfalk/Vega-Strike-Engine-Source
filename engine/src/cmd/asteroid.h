@@ -5,12 +5,15 @@
 #include "gfx/matrix.h"
 #include "cmd/script/flightgroup.h"
 #include "cmd/collection.h"
-#include "cmd/asteroid_generic.h"
 #include "cmd/unit_factory.h"
 #include "cmd/unit.h"
+#include "dummyunit.h"
 
-class GameAsteroid : public GameUnit< Asteroid >
+class GameAsteroid : public GameUnit< DummyUnit >
 {
+private:
+  unsigned int asteroid_physics_offset;
+
 public:
     virtual void UpdatePhysics2( const Transformation &trans,
                                  const Transformation &old_physical_state,
@@ -20,6 +23,10 @@ public:
                                  const Vector &CumulativeVelocity,
                                  bool ResolveLast,
                                  UnitCollection *uc = NULL );
+  void Init( float difficulty);
+  virtual enum clsptr isUnit() const { return(ASTEROIDPTR);}
+  virtual void reactToCollision(Unit * smaller, const QVector& biglocation, const Vector& bignormal, const QVector& smalllocation, const Vector& smallnormal, float dist);
+
 protected:
 /** Constructor that can only be called by the UnitFactory.
  */
@@ -32,10 +39,10 @@ private:
     GameAsteroid();
 
 /// copy constructor forbidden
-    GameAsteroid( const Asteroid& );
+    GameAsteroid( const DummyUnit& );
 
 /// assignment operator forbidden
-    GameAsteroid& operator=( const Asteroid& );
+    GameAsteroid& operator=( const DummyUnit& );
 };
 #endif
 

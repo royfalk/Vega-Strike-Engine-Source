@@ -1,7 +1,6 @@
 #include "fire.h"
 #include "flybywire.h"
 #include "navigation.h"
-#include "cmd/planet_generic.h"
 #include "config_xml.h"
 #include "vs_globals.h"
 #include "cmd/unit_util.h"
@@ -14,6 +13,7 @@
 #include "vs_random.h"
 #include "lin_time.h" //DEBUG ONLY
 #include "cmd/pilot.h"
+#include "cmd/planet.h"
 
 extern int numprocessed;
 extern double targetpick;
@@ -35,7 +35,7 @@ Unit * getAtmospheric( Unit *targ )
              ++i)
             if (un->isUnit() == PLANETPTR) {
                 if ( ( targ->Position()-un->Position() ).Magnitude() < targ->rSize()*.5 )
-                    if ( !( ( (Planet*) un )->isAtmospheric() ) )
+                    if ( !( ( (GamePlanet*) un )->isAtmospheric() ) )
                         return un;
             }
     }
@@ -47,7 +47,7 @@ bool RequestClearence( Unit *parent, Unit *targ, unsigned char sex )
     if ( !targ->DockingPortLocations().size() )
         return false;
     if (targ->isUnit() == PLANETPTR) {
-        if ( ( (Planet*) targ )->isAtmospheric() && NoDockWithClear() ) {
+        if ( ( (GamePlanet*) targ )->isAtmospheric() && NoDockWithClear() ) {
             targ = getAtmospheric( targ );
             if (!targ)
                 return false;
@@ -600,7 +600,7 @@ bool FireAt::ShouldFire( Unit *targ, bool &missilelock )
                                                                            "MaximumFiringAngle.maxagg",
                                                                            "18" ) )/180. );                                                                      //Roughly 18 degrees
     float temp   = parent->TrackingGuns( missilelock );
-    bool  isjumppoint = targ->isUnit() == PLANETPTR && ( (Planet*) targ )->GetDestinations().empty() == false;
+    bool  isjumppoint = targ->isUnit() == PLANETPTR && ( (GamePlanet*) targ )->GetDestinations().empty() == false;
     float fangle = (fireangle_minagg+fireangle_maxagg*agg)/(1.0f+agg);
     bool retval  =
         ( (dist < firewhen)
@@ -677,7 +677,7 @@ bool FireAt::isJumpablePlanet( Unit *targ )
 {
     bool istargetjumpableplanet = targ->isUnit() == PLANETPTR;
     if (istargetjumpableplanet) {
-        istargetjumpableplanet = ( !( (Planet*) targ )->GetDestinations().empty() ) && (parent->GetJumpStatus().drive >= 0);
+        istargetjumpableplanet = ( !( (GamePlanet*) targ )->GetDestinations().empty() ) && (parent->GetJumpStatus().drive >= 0);
     }
     return istargetjumpableplanet;
 }

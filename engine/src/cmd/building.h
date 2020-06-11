@@ -2,11 +2,27 @@
 #define __BUILDING_H
 
 #include "unit.h"
-#include "building_generic.h"
+#include "dummyunit.h"
 
-class GameBuilding : public GameUnit< Building >
+class Terrain;
+class ContinuousTerrain;
+class Flightgroup;
+
+class GameBuilding : public GameUnit< DummyUnit >
 {
-protected: GameBuilding( ContinuousTerrain *parent,
+protected:
+    union Buildingparent
+    {
+        Terrain *terrain;
+        ContinuousTerrain *plane;
+    }
+    parent;
+    bool continuous;
+    bool vehicle;
+
+protected:
+
+    GameBuilding( ContinuousTerrain *parent,
                          bool vehicle,
                          const char *filename,
                          bool SubUnit,
@@ -25,6 +41,16 @@ protected: GameBuilding( ContinuousTerrain *parent,
 
 public:
 
+    bool ownz( void *parent )
+    {
+        return this->parent.terrain == (Terrain*) parent;
+    }
+
+    virtual enum clsptr isUnit() const
+    {
+        return BUILDINGPTR;
+    }
+
     virtual void UpdatePhysics2( const Transformation &trans,
                                  const Transformation &oldtranssmat,
                                  const Vector&,
@@ -33,13 +59,6 @@ public:
                                  const Vector &CumulativeVelocity,
                                  bool ResolveLast,
                                  UnitCollection *uc = NULL );
-protected:
-/// default constructor forbidden
-    GameBuilding();
-/// copy constructor forbidden
-    GameBuilding( const Building& );
-/// assignment operator forbidden
-    GameBuilding& operator=( const Building& );
 };
 
 #endif

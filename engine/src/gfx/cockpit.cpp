@@ -57,7 +57,7 @@
 #include "options.h"
 #include "soundcontainer_aldrv.h"
 #include "configxml.h"
-
+#include "cmd/planet.h"
 
 
 using std::min;
@@ -426,9 +426,6 @@ inline void DrawDockingBoxes( Unit *un, const Unit *target, const Vector &CamP, 
 
 void GameCockpit::DrawTargetBoxes(const Radar::Sensor& sensor)
 {
-    if (sensor.InsideNebula())
-        return;
-
     StarSystem     *ssystem  = _Universe->activeStarSystem();
     UnitCollection *unitlist = &ssystem->getUnitList();
     //UnitCollection::UnitIterator *uiter=unitlist->createIterator();
@@ -516,8 +513,6 @@ inline void DrawITTSMark( float Size, QVector p, QVector q, QVector aimLoc, GFXC
 
 void GameCockpit::DrawTargetBox(const Radar::Sensor& sensor)
 {
-    if (sensor.InsideNebula())
-        return;
     Unit *player = sensor.GetPlayer();
     assert(player);
     Unit *target = player->Target();
@@ -590,7 +585,7 @@ void GameCockpit::DrawTargetBox(const Radar::Sensor& sensor)
     if ( draw_target_nav_symbol
         && ( (target->faction == neutral
               && target->isUnit() == UNITPTR) || target->isUnit() == ASTEROIDPTR
-            || ( target->isPlanet() && ( (Planet*) target )->isAtmospheric()
+            || ( target->isPlanet() && ( (GamePlanet*) target )->isAtmospheric()
                 && ( draw_jump_nav_symbol
                      || target->GetDestinations().empty() ) ) || !sensor.InRange(track)) ) {
         static float nav_symbol_size = XMLSupport::parse_float( vs_config->getVariable( "graphics", "nav_symbol_size", ".25" ) );
@@ -685,10 +680,6 @@ void GameCockpit::DrawCommunicatingBoxes()
 
 void GameCockpit::DrawTurretTargetBoxes(const Radar::Sensor& sensor)
 {
-    if (sensor.InsideNebula())
-        return;
-
-
     GFXDisable( TEXTURE0 );
     GFXDisable( TEXTURE1 );
     GFXDisable( DEPTHTEST );

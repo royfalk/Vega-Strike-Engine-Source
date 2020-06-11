@@ -10,6 +10,7 @@
 #include "universe_util.h"
 #include "unit_const_cache.h"
 #include "pilot.h"
+#include "cmd/ai/order.h"
 //Various functions that were used in .cpp files that are now included because of
 //the temple GameUnit class
 //If not separated from those files functions would be defined in multiple places
