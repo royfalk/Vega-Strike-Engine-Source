@@ -59,9 +59,6 @@ void SwitchUnits2(Unit *nw) {
 void DoCockpitKeys() {
 }
 
-void bootstrap_draw(const std::string &message, Animation *SplashScreen) {
-}
-
 void createObjects(std::vector<std::string> &playersaveunit,
         std::vector<StarSystem *> &ssys,
         std::vector<QVector> &savedloc,

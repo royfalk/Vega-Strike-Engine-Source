@@ -46,7 +46,7 @@
 #include "gldrv/gl_globals.h"
 
 #include "libraries/gui/gui.h"
-#include "imgui.h"
+#include "imgui/imgui.h"
 
 
 static bool isInside() {
@@ -165,151 +165,135 @@ static void FlushBuffer(std::vector<TextSegment>& segments, std::string& buffer,
 }
 
 
-static std::vector<TextLine> ParseText(const std::string& text, ImU32 default_color) {
-    std::vector<TextLine> lines;
-    std::vector<TextSegment> segments;
-
-    ImU32 current_color = default_color;
-    std::string buffer;
-    std::string current_line;
-
-    // Can't use for-each because we need i to move forward and back
-    for (size_t i = 0; i < text.size(); ++i) {
-        char c = text[i];
-
-        // '_' is rendered as space
-        if (c == '_')
-            c = ' ';
-
-        // Color tag: #RRGGBB
-        if (c == '#' && i + 6 < text.size()) {
-            FlushBuffer(segments, buffer, current_color);
-
-            float r = TwoCharToFloat(text[i + 1], text[i + 2]);
-            float g = TwoCharToFloat(text[i + 3], text[i + 4]);
-            float b = TwoCharToFloat(text[i + 5], text[i + 6]);
-
-            if (r == 0 && g == 0 && b == 0)
-                current_color = default_color;
-            else
-                current_color = MakeColorU32(r, g, b, 1.0);
-
-            i += 6;
-            continue;
-        }
-
-        // Newline
-        if(c=='\n') {
-            FlushBuffer(segments, buffer, current_color);
-            current_color = default_color;
-
-            TextLine line;
-            line.width = ImGui::CalcTextSize(current_line.c_str()).x;
-            line.segments = segments;
-            lines.emplace_back(line);
-            segments.clear();
-
-            continue;
-        }
-
-        // Tabs are kept as-is (rendering decides width)
-        // if (c == '\t') {
-        //     flush();
-        //     result.emplace_back("\t", currentColor);
-        //     continue;
-        // }
-
-        // Normal character (includes tabs but not including newline)
-        buffer.push_back(c);
-        current_line.push_back(c);
-    }
-
-    FlushBuffer(segments, buffer, current_color);
-    TextLine line;
-    line.segments = segments;
-    lines.emplace_back(line);
-    return lines;
-}
-
-// TODO: move to gui library/utilities
-bool isTransparent(ImU32 color) {
-    return ((color >> IM_COL32_A_SHIFT) & 0xFF) == 0;
-}
-
-// Draw background
-/*if (!automatte && drawbg) {
-    GFXColorf(this->bgcol);
-    DrawSquare(col, this->myDims.i, row - rowheight * .25, row + rowheight);
-}*/
-
-/*if (!automatte && drawbg) {
-    GFXColorf(this->bgcol);
-    DrawSquare(col, this->myDims.i, row - rowheight * .25, row + rowheight * .75);
-}*/
-
-void drawBackground(ImDrawList* draw_list, ImU32 background_color, 
-                    ImVec2 position, ImVec2 size, bool automatte) {
-    const ImVec2 pad(4.0f, 2.0f); // TODO: make this variable
-}
-
-void drawBackgroundAroundText(ImDrawList* draw_list, ImU32 background_color, 
-                              ImVec2 position, std::string text, bool automatte) {
-    ImVec2 text_size = ImGui::CalcTextSize(text.c_str());                        
-    drawBackground(draw_list, background_color, position, text_size, automatte);
-}
-
-
-
-int TextPlane::Draw(const string &newText, int offset, bool start_lower, bool force_highquality, bool automatte) {
+int TextPlane::Draw(const string &newText, int offset, bool startlower, bool force_highquality, bool automatte) {
     std::pair<int,int> pair = CalculateAbsoluteXY(myDims.k, myFontMetrics.k);
-    ImVec2 position(pair.first, pair.second);
 
-    std::vector<TextLine> lines = ParseText(newText, color);
-    ImVec2 text_size;
-    ImDrawList* draw_list = ImGui::GetForegroundDrawList();
-    const ImVec2 pad(4.0f, 2.0f); // TODO: make this variable
+
+    //ImGui::PushFont(fonts[2]);
+    ImGui::GetForegroundDrawList()->AddText(ImVec2(pair.first, pair.second),
+                                            IM_COL32(255, 255, 255, 255),newText.c_str());
+    //ImGui::PopFont();      
     
-    // Move one line up if not start_lower 
-    if(!start_lower) {
-        // Calculate dummy line, otherwise, text might move several lines down
-        text_size = ImGui::CalcTextSize("hello world");
-        position.y -= text_size.y;
-    }
-
-    for (TextLine& line : lines) {
-        for(TextSegment& segment : line.segments) {
-            text_size = ImGui::CalcTextSize(segment.text.c_str());
-
-            // Background rectangle
-            if(!isTransparent(background_color) && !automatte) {
-                // Need these because we pass a reference
-                // Need explicit construction because ImVec2 did not overload arithmetic operators
-                // TODO: add this to imgui
-                
-                const ImVec2 start_position(position.x - pad.x, position.y - pad.y);
-                const ImVec2 end_position(position.x + text_size.x + pad.x, position.y +text_size.y + pad.y);
-                draw_list->AddRectFilled(
-                    start_position,
-                    end_position,
-                    background_color,
-                    0.0f // No rounded borders
-                );
-
-            }
-
-            draw_list->AddText(position, segment.color, segment.text.c_str());
-             
-            position.x += text_size.x;
-        }
-
-        if(line.segments.empty()) {
-           text_size = ImGui::CalcTextSize("hello world"); 
-        }
-
-        position.y += text_size.y;
-        position.x = pair.first;
-    }
-
     return 1;
+
+    // Edit here!
+    /*int retval = 1;
+    bool drawbg = (bgcol.a != 0);
+    static unsigned int *display_lists = CreateLists();
+    //some stuff to draw the text stuff
+    string::const_iterator text_it = newText.begin();
+    const bool use_bit = force_highquality || configuration().graphics.high_quality_font;
+    const float font_point = configuration().graphics.font_point_flt;
+    const bool font_antialias = configuration().graphics.font_antialias;
+    void *fnt = getFont();
+    static float std_wid = glutStrokeWidth(GLUT_STROKE_ROMAN, 'W');
+    myFontMetrics.i = font_point * std_wid / (119.05 + 33.33);
+    if (use_bit) {
+        myFontMetrics.i = glutBitmapWidth(fnt, 'W');
+    }
+    myFontMetrics.j = font_point;
+    myFontMetrics.i /= .5 * configuration().graphics.resolution_x;
+    myFontMetrics.j /= .5 * configuration().graphics.resolution_y;
+    float tmp, row, col;
+    float origcol;
+    GetPos(row, col);
+    GetPos(row, origcol);
+    float rowheight = use_bit ? getFontHeight() : myFontMetrics.j;
+    myFontMetrics.j = rowheight;
+    if (startlower) {
+        row -= rowheight;
+    }
+    GFXPushBlendMode();
+    glLineWidth(1);
+    if (!use_bit && font_antialias) {
+        GFXBlendMode(SRCALPHA, INVSRCALPHA);
+        if (configuration().graphics.smooth_lines) {
+            glEnable(GL_LINE_SMOOTH);
+        }
+    } else {
+        GFXBlendMode(SRCALPHA, INVSRCALPHA);
+        if (configuration().graphics.smooth_lines) {
+            glDisable(GL_LINE_SMOOTH);
+        }
+    }
+    GFXColorf(this->col);
+    GFXDisable(DEPTHTEST);
+    GFXDisable(CULLFACE);
+    GFXDisable(LIGHTING);
+    GFXDisable(TEXTURE0);
+    GFXDisable(TEXTURE1);
+    glPushMatrix();
+    glLoadIdentity();
+    if (!automatte && drawbg) {
+        GFXColorf(this->bgcol);
+        DrawSquare(col, this->myDims.i, row - rowheight * .25, row + rowheight);
+    }
+    GFXColorf(this->col);
+    int entercount = 0;
+    for (; entercount < offset && text_it != newText.end(); text_it++) {
+        if (*text_it == '\n') {
+            entercount++;
+        }
+    }
+    glTranslatef(col, row, 0);
+    glRasterPos2f(0, 0);
+    float scalex = 1;
+    float scaley = 1;
+    int potentialincrease = 0;
+    if (!use_bit) {
+        int numplayers = 1;
+        if (_Universe) {          //_Universe can be NULL during bootstrap.
+            numplayers = (_Universe->numPlayers() > 3 ? _Universe->numPlayers() / 2
+                    : _Universe->numPlayers());
+        }
+        scalex = numplayers * myFontMetrics.i / std_wid;
+        scaley = myFontMetrics.j / (119.05 + 33.33);
+    }
+    glScalef(scalex, scaley, 1);
+    bool firstThroughLoop = true;
+    GFXColor currentCol(this->col);
+    while (text_it != newText.end() && (firstThroughLoop || row > myDims.j - rowheight * .25)) {
+        unsigned char myc = *text_it;
+        if (myc == '_') {
+            myc = ' ';
+        }
+        float shadowlen = 0;
+        if (myc == '\t') {
+            shadowlen = glutBitmapWidth(fnt, ' ') * 5. / (.5 * configuration().graphics.resolution_x);
+        } else {
+            if (use_bit) {
+                shadowlen = glutBitmapWidth(fnt, myc) / (float) (.5
+                        * configuration().graphics.resolution_x);                    //need to use myc -- could have transformed '_' to ' '
+            } else {
+                shadowlen = myFontMetrics.i * glutStrokeWidth(GLUT_STROKE_ROMAN, myc) / std_wid;
+            }
+        }
+        if (*text_it == '#') {
+            if (newText.end() - text_it > 6) {
+                float r, g, b;
+                r = TwoCharToFloat(*(text_it + 1), *(text_it + 2));
+                g = TwoCharToFloat(*(text_it + 3), *(text_it + 4));
+                b = TwoCharToFloat(*(text_it + 5), *(text_it + 6));
+                if (r == 0 && g == 0 && b == 0) {
+                    currentCol = this->col;
+                } else {
+                    currentCol = GFXColor(r, g, b, this->col.a);
+                }
+                GFXColorf(currentCol);
+                const bool setRasterPos = configuration().graphics.set_raster_text_color;
+                if (use_bit && setRasterPos) {
+                    glRasterPos2f(col - origcol, 0);
+                }
+                text_it = text_it + 6;
+            } else {
+                break;
+            }
+            text_it++;
+            continue;
+        }
+
+    GFXPopBlendMode();
+    GFXColorf(this->col);
+    return retval;*/
 }
 

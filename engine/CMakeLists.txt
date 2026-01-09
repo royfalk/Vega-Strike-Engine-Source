@@ -657,6 +657,7 @@ SET(VEGASTRIKE_SOURCES
     src/cmd/pilot.cpp
     src/cmd/images.cpp
     src/cmd/turret.cpp
+    src/gldrv/image_utils.cpp
     src/gldrv/gl_program.cpp
     src/gldrv/gl_clip.cpp
     src/gldrv/gl_fog.cpp

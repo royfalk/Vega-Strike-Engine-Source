@@ -1,5 +1,5 @@
 /*
- * gui.cpp
+ * widget.cpp
  *
  * Vega Strike - Space Simulation, Combat and Trading
  * Copyright (C) 2001-2025 The Vega Strike Contributors:
@@ -27,45 +27,4 @@
  */
 
 // -*- mode: c++; c-basic-offset: 4; indent-tabs-mode: nil -*-
-
-#include <cassert>
-#include <string>
-#include <SDL2/SDL.h>
-
-#include "collections.h"
-#include "splash_screen.h"
-
-// Must come before imgui.h
-#define IMGUI_DEFINE_MATH_OPERATORS
-#include "imgui.h"
-#include "backends/imgui_impl_sdl2.h"
-#include "backends/imgui_impl_opengl3.h"
-#include "backends/imgui_impl_sdlrenderer2.h"
-
-
-bool gui_initialized = false;
-SDL_Window* current_window = nullptr;
-
-void InitGui() {
-    current_window = SDL_GL_GetCurrentWindow();
-    SDL_GLContext gl_context = SDL_GL_GetCurrentContext();
-
-    assert(current_window);
-
-    ImGui::CreateContext();
-    
-    ImGui_ImplSDL2_InitForOpenGL(current_window, gl_context);
-    const char* glsl_version = "#version 130";
-    ImGui_ImplOpenGL3_Init(glsl_version);
-
-    gui_initialized = true;
-}
-
-void CleanupGui() {
-    // Cleanup
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplSDL2_Shutdown();
-    ImGui::DestroyContext();
-    gui_initialized = false;
-}
 

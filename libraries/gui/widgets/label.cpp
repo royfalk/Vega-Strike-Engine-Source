@@ -1,5 +1,5 @@
 /*
- * gui.cpp
+ * label.cpp
  *
  * Vega Strike - Space Simulation, Combat and Trading
  * Copyright (C) 2001-2025 The Vega Strike Contributors:
@@ -28,44 +28,38 @@
 
 // -*- mode: c++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 
-#include <cassert>
-#include <string>
-#include <SDL2/SDL.h>
-
-#include "collections.h"
-#include "splash_screen.h"
-
-// Must come before imgui.h
-#define IMGUI_DEFINE_MATH_OPERATORS
+#include "label.h"
 #include "imgui.h"
-#include "backends/imgui_impl_sdl2.h"
-#include "backends/imgui_impl_opengl3.h"
-#include "backends/imgui_impl_sdlrenderer2.h"
 
-
-bool gui_initialized = false;
-SDL_Window* current_window = nullptr;
-
-void InitGui() {
-    current_window = SDL_GL_GetCurrentWindow();
-    SDL_GLContext gl_context = SDL_GL_GetCurrentContext();
-
-    assert(current_window);
-
-    ImGui::CreateContext();
+Label::Label(const std::string& text, int width,
+             ColorCollection colors, ImFont* font, TextAlignment alignment):
+             text(text), width(width), colors(colors), 
+             font(font), alignment(alignment) {}
     
-    ImGui_ImplSDL2_InitForOpenGL(current_window, gl_context);
-    const char* glsl_version = "#version 130";
-    ImGui_ImplOpenGL3_Init(glsl_version);
+void Label::Draw() {
+    const ImVec2 cell_start = ImGui::GetCursorScreenPos(); // top-left of child
+    const ImVec2 text_size = ImGui::CalcTextSize(text.c_str());
 
-    gui_initialized = true;
-}
+    if(alignment == TextAlignment::center) {
+        ImGui::SetCursorScreenPos(ImVec2(
+            cell_start.x + (width - text_size.x) * 0.5f,
+            cell_start.y
+        ));
+    } else if(alignment == TextAlignment::right) {
+        ImGui::SetCursorScreenPos(ImVec2(
+            cell_start.x + (width - text_size.x),
+            cell_start.y
+        ));
+    }
 
-void CleanupGui() {
-    // Cleanup
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplSDL2_Shutdown();
-    ImGui::DestroyContext();
-    gui_initialized = false;
+    if(font) {
+        ImGui::PushFont(font);
+    }
+
+    ImGui::Text("%s", text.c_str());
+
+    if(font) {
+        ImGui::PopFont();
+    }
 }
 

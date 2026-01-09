@@ -719,6 +719,7 @@ bool RefreshGUI(void) {
     return retval;
 }
 
+
 void base_main_loop() {
     UpdateTime();
     Music::MuzakCycle();
@@ -728,7 +729,6 @@ void base_main_loop() {
         createdbase = false;
         AUDStopAllSounds(createdmusic);
     }
-
     // ImGui Init
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame();
@@ -740,8 +740,13 @@ void base_main_loop() {
                              configuration().graphics.resolution_y);
     ImGui::SetNextWindowSize(window_size, ImGuiCond_Always);
     ImGui::Begin("main_window", nullptr, window_flags);
-    
-    bool refresh_result = RefreshGUI();
+
+    if (!RefreshGUI()) {
+        restore_main_loop();
+    } else {
+        GFXEndScene();
+        micro_sleep(1000);
+    }
 
     // ImGui End Frame
     ImGui::End();
@@ -752,12 +757,6 @@ void base_main_loop() {
     SDL_GL_SwapWindow(current_window);
     // End ImGui
 
-    if (!refresh_result) {
-        restore_main_loop();
-    } else {
-        GFXEndScene();
-        micro_sleep(1000);
-    }
     BaseComputer::dirty = false;
 }
 

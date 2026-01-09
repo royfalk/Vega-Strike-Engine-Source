@@ -1,9 +1,21 @@
+#include <iostream>
+#include <vector>
 #include "SDL2/SDL.h"
+#include <SDL2/SDL_image.h>
+
+// Must come before imgui.h
+#define IMGUI_DEFINE_MATH_OPERATORS
+
+#include "clickable_text.h"
+#include "credits.h"
+#include "load_game.h"
 #include "imgui.h"
+#include "layout.h"
+#include "collections.h"
 #include "backends/imgui_impl_sdl2.h"
 #include "backends/imgui_impl_sdlrenderer2.h"
 
-#include <iostream>
+
 
 void setBackgroundColor(float red, float green, float blue, float transparent) {
     // Get a reference to the ImGui style
@@ -20,25 +32,101 @@ void setBackgroundColor(float red, float green, float blue, float transparent) {
     colors[ImGuiCol_WindowBg] = newBgColor;
 }
 
+SDL_Texture* createBackgroundImage(SDL_Renderer* renderer, const std::string& filename) {
+    SDL_Texture* background_texture = nullptr;
+
+    SDL_Surface* imageSurface = IMG_Load(filename.c_str());
+    if (!imageSurface) {
+        std::cerr << "Failed to load image: " << filename << " Error: " << IMG_GetError() << std::endl;
+        return nullptr;
+    }
+
+    background_texture = SDL_CreateTextureFromSurface(renderer, imageSurface);
+    SDL_FreeSurface(imageSurface);
+
+    if (!background_texture) {
+        std::cerr << "Failed to create texture from image: " << filename << " Error: " << SDL_GetError() << std::endl;
+        return nullptr;
+    }
+
+    return background_texture;
+}
+
+// Helper to render the background image (call at the start of your render loop)
+void renderBackgroundImage(SDL_Renderer* renderer, SDL_Window* window, SDL_Texture* background_texture) {
+    if (!background_texture) return;
+
+    int w, h;
+    SDL_GetWindowSize(window, &w, &h);
+    SDL_Rect destRect = {0, 0, w, h};
+    SDL_RenderCopy(renderer, background_texture, nullptr, &destRect);
+}
+
+void destroyBackgroundImage(SDL_Texture* background_texture) {
+    // Free texture if any
+    if (background_texture) {
+        SDL_DestroyTexture(background_texture);
+        background_texture = nullptr;
+    }
+}
+
+
+std::vector<ImFont*> GenerateFonts() {
+    ImGuiIO& io{ImGui::GetIO()};
+    std::vector<ImFont*> fonts;
+    ImFont* font_small = io.Fonts->AddFontFromFileTTF("FrontPageNeue.otf", 16.0f);
+    fonts.push_back(font_small);
+    ImFont* font_medium = io.Fonts->AddFontFromFileTTF("FrontPageNeue.otf", 18.0f);
+    fonts.push_back(font_medium);
+    ImFont* font_large = io.Fonts->AddFontFromFileTTF("FrontPageNeue.otf", 36.0f);
+    fonts.push_back(font_large);
+    ImFont* open_sans_16 = io.Fonts->AddFontFromFileTTF("OpenSans-VariableFont_wdth,wght.ttf", 16.0f);
+    fonts.push_back(open_sans_16);
+    io.Fonts->Build(); 
+    return fonts;
+}
+
+
+
 // Show Menu
 void showMenu(SDL_Renderer* renderer, SDL_Window *window) {
-    std::cout << "Begin showMenu\n";
+    int window_width = 0, window_height = 0;
+    SDL_GetWindowSize(window, &window_width, &window_height);
+    ImVec2 size(window_width, window_height);
+
+    SDL_Texture* background_texture = createBackgroundImage(renderer, "main_menu.png");
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io{ImGui::GetIO()};
     ImGui::StyleColorsDark();
 
-    std::cout << "Finished init\n";
-
     // Setup Platform/Renderer backends
     ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
     ImGui_ImplSDLRenderer2_Init(renderer);
 
-    std::cout << "Finished setup\n";
-
     setBackgroundColor(0.0f,0.0f,0.0f,1.0f);
     ImVec4 clear_color = ImVec4(0.0f, 0.0f, 0.0f, 1.00f);
+
+    std::vector<ImFont*> fonts = GenerateFonts();
+
+    Layout layout(LayoutType::vertical);
+    ColorCollection colors;
+
+    ClickableText new_game_label("New Game", size.x, colors);
+    ClickableText load_game_label("Load Game", size.x, colors);
+    ClickableText credits_label("Credits", size.x, colors);
+    ClickableText help_label("Help", size.x, colors);
+    ClickableText settings_label("Settings", size.x, colors);
+    ClickableText quit_label("Quit", size.x, colors);
+
+    layout.AddWidget(&new_game_label);
+    layout.AddWidget(&load_game_label);
+    layout.AddWidget(&credits_label);
+    layout.AddWidget(&help_label);
+    layout.AddWidget(&settings_label);
+    layout.AddWidget(&quit_label);
+
 
     bool done = false;
     while (!done)
@@ -63,8 +151,6 @@ void showMenu(SDL_Renderer* renderer, SDL_Window *window) {
             continue;
         }
 
-        bool show_another_window;
-
         ImGuiWindowFlags window_flags = 
             ImGuiWindowFlags_NoTitleBar |
             ImGuiWindowFlags_NoResize |
@@ -80,37 +166,17 @@ void showMenu(SDL_Renderer* renderer, SDL_Window *window) {
 
         // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
         {
-            static float f = 0.0f;
-            static int counter = 0;
-
             ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
             ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize, ImGuiCond_Always);
 
             ImGui::Begin("Hello, world!", nullptr, window_flags);                          // Create a window called "Hello, world!" and append into it.
 
-            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-            ImGui::Checkbox("Another Window", &show_another_window);
+            ImGui::PushFont(fonts[2]);
 
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-            if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-                counter++;
-            ImGui::SameLine();
-            ImGui::Text("counter = %d", counter);
-
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+            layout.Draw();
+            
+            ImGui::PopFont();
             ImGui::End();
-        }
-
-        // 3. Show another simple window.
-        if (show_another_window)
-        {
-            // ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-            // ImGui::Text("Hello from another window!");
-            // if (ImGui::Button("Close Me"))
-            //     show_another_window = false;
-            // ImGui::End();
         }
 
         // Rendering
@@ -118,11 +184,25 @@ void showMenu(SDL_Renderer* renderer, SDL_Window *window) {
         SDL_RenderSetScale(renderer, io.DisplayFramebufferScale.x, io.DisplayFramebufferScale.y);
         SDL_SetRenderDrawColor(renderer, (Uint8)(clear_color.x * 255), (Uint8)(clear_color.y * 255), (Uint8)(clear_color.z * 255), (Uint8)(clear_color.w * 255));
         SDL_RenderClear(renderer);
+        renderBackgroundImage(renderer, window, background_texture);
         ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);
         SDL_RenderPresent(renderer);
+
+        if(load_game_label.GetClickAndReset()) {
+            ShowLoadScreen(renderer, window, fonts, size.x);
+        }
+
+        if(credits_label.GetClickAndReset()) {
+            ShowCredits(renderer, window, fonts, size.x);
+        }
+
+        if(quit_label.GetClickAndReset()) {
+            done = true;
+        }
     }
 
     // Cleanup
+    
     ImGui_ImplSDLRenderer2_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();

@@ -57,7 +57,6 @@
 #include "src/python/init.h"
 #include "vegadisk/savegame.h"
 #include "src/force_feedback.h"
-#include "gfx/hud.h"
 #include "gldrv/winsys.h"
 #include "src/universe_util.h"
 #include "src/universe.h"
@@ -67,6 +66,7 @@
 #include "audio/SceneManager.h"
 #include "audio/renderers/OpenAL/BorrowedOpenALRenderer.h"
 #include "configuration/configuration.h"
+#include "libraries/gui/widgets/splash_screen.h"
 #include <time.h>
 #if !defined(_WIN32) && !defined (__HAIKU__)
 #include <signal.h>
@@ -94,7 +94,6 @@
  * Globals
  */
 Universe *_Universe;
-TextPlane *bs_tp = nullptr;
 char SERVER = 0;
 
 //false if command line option --net is given to start without network
@@ -440,77 +439,23 @@ void bootstrap_draw(const std::string &message, Animation *newSplashScreen) {
     }
     UpdateTime();
 
-    Matrix tmp;
-    Identity(tmp);
-    BootstrapMyStarSystemLoading = false;
-    static Texture dummy("white.bmp", 0, MIPMAP, TEXTURE2D, TEXTURE_2D, 1);
-    BootstrapMyStarSystemLoading = true;
-    dummy.MakeActive();
-    GFXDisable(LIGHTING);
-    GFXDisable(DEPTHTEST);
-    GFXBlendMode(ONE, ZERO);
-    GFXEnable(TEXTURE0);
-    GFXDisable(TEXTURE1);
-    GFXColor4f(1, 1, 1, 1);
-    GFXClear(GFXTRUE);
-    GFXLoadIdentity(PROJECTION);
-    GFXLoadIdentity(VIEW);
-    GFXLoadMatrixModel(tmp);
-    GFXBeginScene();
-
-    bs_tp->SetPos(-.99, -.97);     //Leave a little bit of room for the bottoms of characters.
-    bs_tp->SetCharSize(.4, .8);
-    ScaleMatrix(tmp, Vector(6500, 6500, 0));
-    GFXLoadMatrixModel(tmp);
-    GFXHudMode(GFXTRUE);
     if (ani) {
         if (GetElapsedTime() < 10) {
             ani->UpdateAllFrame();
         }
         {
-            ani->DrawNow(tmp);
+            //ani->DrawNow(tmp);
         }
     }
-
-    static const ImGuiWindowFlags window_flags = 
-        ImGuiWindowFlags_NoTitleBar |
-        ImGuiWindowFlags_NoResize |
-        ImGuiWindowFlags_NoMove |
-        ImGuiWindowFlags_NoScrollbar |
-        ImGuiWindowFlags_NoCollapse |
-        ImGuiWindowFlags_NoBackground |
-        ImGuiWindowFlags_NoDecoration;   // makes it transparent
-
-    // ImGui Init
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplSDL2_NewFrame();
-    ImGui::NewFrame();
-    // End ImGui Init
-
-
-    ImGui::SetNextWindowPos(ImVec2(0,0), ImGuiCond_Always);
-    const ImVec2 window_size(configuration().graphics.resolution_x,
-                             configuration().graphics.resolution_y);
-    ImGui::SetNextWindowSize(window_size, ImGuiCond_Always);
-    ImGui::Begin("main_window", nullptr, window_flags);
-
-
-    bs_tp->Draw(configuration().graphics.default_boot_message.length() > 0 ?
-            configuration().graphics.default_boot_message : message.length() > 0 ?
-                    message : configuration().graphics.initial_boot_message);
-
-    // ImGui End Frame
-    ImGui::End();
-    // Rendering
-    ImGui::Render();
-
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    SDL_Window* current_window = SDL_GL_GetCurrentWindow();
-    SDL_GL_SwapWindow(current_window);
-    // End ImGui
-
-    GFXHudMode(GFXFALSE);
-    GFXEndScene();
+    // bs_tp->Draw(configuration().graphics.default_boot_message.length() > 0 ?
+    //         configuration().graphics.default_boot_message : message.length() > 0 ?
+    //                 message : configuration().graphics.initial_boot_message);
+    std::string display_message = configuration().graphics.default_boot_message.length() > 0 ?
+                    configuration().graphics.default_boot_message : message.length() > 0 ?
+                    message : configuration().graphics.initial_boot_message;
+    RenderSplashScreen(display_message, 
+                       configuration().graphics.resolution_x,
+                       configuration().graphics.resolution_y);
 
     reentryWatchdog = false;
 }
@@ -568,7 +513,6 @@ void bootstrap_first_loop() {
         if (!sa.empty() && sa[0].length()) {
             muzak->GotoSong(sa[snum % sa.size()]);
         }
-        bs_tp = new TextPlane();
     }
     bootstrap_draw("Vegastrike Loading...", SplashScreen);
     if (i++ > 4) {
